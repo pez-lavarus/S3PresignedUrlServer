@@ -10,13 +10,15 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Initialize S3 client with AWS SDK v3
+// Initialize S3 client WITHOUT explicit credentials
+// SDK will automatically use EC2 instance role credentials
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  }
+  region: process.env.AWS_REGION || 'us-east-1'
+  // No credentials field - SDK will look for them in this order:
+  // 1. Environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+  // 2. AWS shared credentials file (~/.aws/credentials)
+  // 3. IAM role associated with the EC2 instance
+  // 4. Other sources like ECS credentials, etc.
 });
 
 // Generate presigned URL for PUT upload
